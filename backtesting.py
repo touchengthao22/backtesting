@@ -25,15 +25,23 @@ class Backtesting:
     def show_data(self):
         return self.data.head()
     
+    def calc_candle_strength(self, price_1, price_2):
+        result = abs(price_1 - price_2)
+
+        return result
+
+    
     def backtest_orb(self):
         count = 0
        
         for date, group in self.data.groupby(self.data.index.date):
             print("")
+            print("")
+        
             orb_high = group["high_spy"].iloc[0]
             orb_low = group["low_spy"].iloc[0]
             print("-" * 50)
-            print(f'orb_high: {orb_high} and orb_low: {orb_low}')
+            print(f'{date} -- orb_high: {orb_high} and orb_low: {orb_low}')
             print("-" * 50)
             
             for i in range(len(group)):
@@ -41,8 +49,8 @@ class Backtesting:
                 high = group["high_spy"].iloc[i]
                 low = group["low_spy"].iloc[i]
                 close = group["close_spy"].iloc[i]
-
-                if open_spy > orb_high and low <= orb_high and close >= orb_high:
+            
+                if open_spy > orb_high and low <= orb_high and close >= orb_high and self.calc_candle_strength(high, close) < self.calc_candle_strength(open_spy, low):
                     count += 1
                     print(f"{group.index[i]}, low: {low}, close: {close}")
 
