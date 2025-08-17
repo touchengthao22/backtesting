@@ -50,7 +50,8 @@ class Backtesting:
                 low = group["low_spy"].iloc[i]
                 close = group["close_spy"].iloc[i]
                 current_date = group.index[i]
-                prev_date = current_date - pd.Timedelta(days=5)
+                yesterday = current_date - pd.Timedelta(days=1)
+                prev_5 = current_date - pd.Timedelta(days=5)
 
                 is_uptrend_conditions = [
                     open_spy > orb_high,
@@ -66,24 +67,25 @@ class Backtesting:
                     self.calc_candle_strength(high, close) > self.calc_candle_strength(open_spy, low)
                 ]
                 
-                if prev_date in group.index and group["close_spy"].iloc[i] > group["close_spy"].iloc[i - 5]:
-                    if all(is_uptrend_conditions):
-                        count += 1
-                        print(f"{group.index[i]}, low: {low}, close: {close}")
+                if yesterday in group.index and prev_5 in group.index:
+                    if group.loc[yesterday, "close_spy"] > group.loc[prev_5, "close_spy"]:
+                        if all(is_uptrend_conditions):
+                            count += 1
+                            print(f"{group.index[i]}, low: {low}, close: {close} - BUY")
                 
-                elif prev_date in group.index and group["close_spy"].iloc[i] < group["close_spy"].iloc[i - 5]:
-                    if all(is_downtrend_conditions):
-                        count += 1
-                        print(f"{group.index[i]}, low: {low}, close: {close}")
-                
+                    elif group.loc[yesterday, "close_spy"] < group.loc[prev_5, "close_spy"]:
+                        if all(is_downtrend_conditions):
+                            count += 1
+                            print(f"{group.index[i]}, low: {low}, close: {close} - SELL")
+                    
                 else:
                     if all(is_uptrend_conditions):
                         count += 1
-                        print(f"{group.index[i]}, low: {low}, close: {close}")
+                        print(f"{group.index[i]}, low: {low}, close: {close} - BUY")
                     
                     if all(is_downtrend_conditions):
                         count += 1
-                        print(f"{group.index[i]}, low: {low}, close: {close}")
+                        print(f"{group.index[i]}, low: {low}, close: {close} - SELL")
 
         print(count)
 
