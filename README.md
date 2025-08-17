@@ -1,81 +1,29 @@
-# Code Explanation: Trading Day Condition Check
+# Trading Day Trend Explorer
 
-This code is designed to decide whether to **BUY** or **SELL** based on
-stock price trends, using the last trading day and a trading day from 5
-days earlier.
+**Trading Day Trend Explorer** is a personal, hobby project to learn how to **analyze and manipulate stock data** using Python and Yahoo Finance. Everything is **work in progress**, and this project is purely for **educational purposes**—no real trading or financial advice intended.
 
-------------------------------------------------------------------------
+---
 
-## Key Variables
+## Overview
 
--   **`group`** → A pandas DataFrame that contains stock data indexed by
-    trading dates.
--   **`yesterday`** → The most recent trading day before the current day
-    being checked.
--   **`prev_5`** → The trading day from 5 days earlier than `yesterday`.
--   **`is_uptrend_conditions`** → A list of boolean conditions that must
-    all be true to confirm an uptrend.
--   **`is_downtrend_conditions`** → A list of boolean conditions that
-    must all be true to confirm a downtrend.
--   **`count`** → A counter to track how many times a trade signal (BUY
-    or SELL) is triggered.
+This project explores trends in stock prices by comparing recent closing prices with prices from previous trading days. It’s designed to help you practice:
 
-------------------------------------------------------------------------
+- Working with **pandas** and time-series data.  
+- Handling **missing data** like weekends or market holidays.  
+- Testing **logical conditions** to detect potential uptrends or downtrends.  
+- Tracking hypothetical **BUY** and **SELL** signals for analysis and learning.
 
-## Code Logic Breakdown - WORK IN PROGRESS!
+---
 
-``` python
-if yesterday in group.index and prev_5 in group.index:
-    if group.loc[yesterday, "close_spy"] > group.loc[prev_5, "close_spy"]:
-        if all(is_uptrend_conditions):
-            count += 1
-            print(f"{group.index[i]}, low: {low}, close: {close} - BUY")
+## Purpose
 
-    elif group.loc[yesterday, "close_spy"] < group.loc[prev_5, "close_spy"]:
-        if all(is_downtrend_conditions):
-            count += 1
-            print(f"{group.index[i]}, low: {low}, close: {close} - SELL")
-```
+- **Learn Python data manipulation** with real market data.  
+- **Experiment with trends** in a risk-free, educational environment.  
+- **Understand how conditions can be combined** to analyze stock movements.  
+- **Have fun exploring** financial data in a structured way.
 
-### Step 1: Check if both `yesterday` and `prev_5` exist in the DataFrame index
+---
 
-This ensures you are comparing **valid trading days**, not weekends or
-holidays when markets are closed.
+## Status
 
-### Step 2: Compare prices
-
--   If **yesterday's closing price \> closing price from 5 days ago**,
-    it suggests an **uptrend** → check conditions, then issue a **BUY**
-    signal.
--   If **yesterday's closing price \< closing price from 5 days ago**,
-    it suggests a **downtrend** → check conditions, then issue a
-    **SELL** signal.
-
-------------------------------------------------------------------------
-
-## Handling Missing Data
-
-``` python
-else:
-    if all(is_uptrend_conditions):
-        count += 1
-        print(f"{group.index[i]}, low: {low}, close: {close} - BUY")
-    
-    if all(is_downtrend_conditions):
-        count += 1
-        print(f"{group.index[i]}, low: {low}, close: {close} - SELL")
-```
-
-If either `yesterday` or `prev_5` is **missing** (e.g., due to weekends,
-holidays, or not enough history): - The decision falls back to trend
-conditions (`is_uptrend_conditions` or `is_downtrend_conditions`)
-**without comparing prices**.
-
-------------------------------------------------------------------------
-
-## Summary
-
-✅ If both yesterday and prev_5 are trading days → compare prices and
-confirm uptrend/downtrend.\
-✅ If data is missing → rely only on uptrend/downtrend conditions.\
-✅ Only SELL if conditions confirm a downtrend.
+This project is experimental and continuously evolving. All ideas and logic are **work in progress**, focused on learning and experimentation rather than real trading outcomes.
