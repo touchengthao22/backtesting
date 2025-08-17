@@ -3,11 +3,10 @@ import pandas as pd
 import pytz
 
 class Backtesting:
-    def __init__(self, profit_target: float, stop_loss: float, trend: str):
+    def __init__(self, profit_target: float, stop_loss: float):
         self.profit_target = profit_target
         self.stop_loss = stop_loss
         self.data = None
-        self.trend = trend
     
     def get_data(self, ticker: str):
         spy_data = yf.download(ticker, period="10d", interval="5m")
@@ -89,7 +88,7 @@ class Backtesting:
         print(count)
 
 if __name__ == "__main__":
-    bt = Backtesting(10,5,"uptrend")
+    bt = Backtesting(10,5)
     bt.get_data("SPY")
     # print(bt.show_data())
     # print(bt.data.dtypes)
