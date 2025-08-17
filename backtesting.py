@@ -3,13 +3,16 @@ import pandas as pd
 import pytz
 
 class Backtesting:
-    def __init__(self, profit_target: float, stop_loss: float):
+    def __init__(self, trend: str, profit_target: int):
+        self.trend = trend
         self.profit_target = profit_target
-        self.stop_loss = stop_loss
         self.data = None
+        self.loss = 0
+        self.win = 0
+        self.num_of_trades = 0
     
     def get_data(self, ticker: str):
-        spy_data = yf.download(ticker, period="10d", interval="5m")
+        spy_data = yf.download(ticker, period="60d", interval="5m")
 
         df = pd.DataFrame(spy_data)
         df.columns = ['_'.join(col).lower() for col in df.columns]
@@ -66,31 +69,97 @@ class Backtesting:
                     close <= orb_low,
                     self.calc_candle_strength(high, close) > self.calc_candle_strength(open_spy, low)
                 ]
-                
-                if yesterday in group.index and prev_5 in group.index:
-                    if group.loc[yesterday, "close_spy"] > group.loc[prev_5, "close_spy"]:
-                        if all(is_uptrend_conditions):
-                            count += 1
-                            print(f"{group.index[i]}, low: {low}, close: {close} - BUY")
-                
-                    elif group.loc[yesterday, "close_spy"] < group.loc[prev_5, "close_spy"]:
-                        if all(is_downtrend_conditions):
-                            count += 1
-                            print(f"{group.index[i]}, low: {low}, close: {close} - SELL")
-                    
-                else:
+
+                if self.trend.lower() == "up":
                     if all(is_uptrend_conditions):
                         count += 1
                         print(f"{group.index[i]}, low: {low}, close: {close} - BUY")
-                    
+                        status = self.trade(close, low, self.profit_target, i, group)
+
+                        if status:
+                            print("You won this trade")
+                            self.num_of_trades = 0
+                            break
+                        
+                        else:
+                            self.num_of_trades += 1
+                            print("You loss")
+                            if self.num_of_trades == 2:
+                                self.num_of_trades = 0
+                                break
+                
+                elif self.trend.lower() == "down":
                     if all(is_downtrend_conditions):
                         count += 1
                         print(f"{group.index[i]}, low: {low}, close: {close} - SELL")
+                        status = self.trade(close, high, self.profit_target, i, group)
 
-        print(count)
+                        if status:
+                            print("You won this trade")
+                            self.num_of_trades = 0
+                            break
+                        
+                        else:
+                            self.num_of_trades += 1
+                            print("You loss")
+                            if self.num_of_trades == 2:
+                                self.num_of_trades = 0
+                                break
+
+                            
+                # if yesterday in group.index and prev_5 in group.index:
+                #     if group.loc[yesterday, "close_spy"] > group.loc[prev_5, "close_spy"]:
+                #         if all(is_uptrend_conditions):
+                #             count += 1
+                #             print(f"{group.index[i]}, low: {low}, close: {close} - BUY")
+                
+                #     elif group.loc[yesterday, "close_spy"] < group.loc[prev_5, "close_spy"]:
+                #         if all(is_downtrend_conditions):
+                #             count += 1
+                #             print(f"{group.index[i]}, low: {low}, close: {close} - SELL")
+                    
+                # else:
+                #     if all(is_uptrend_conditions):
+                #         count += 1
+                #         print(f"{group.index[i]}, low: {low}, close: {close} - BUY")
+                    
+                #     if all(is_downtrend_conditions):
+                #         count += 1
+                #         print(f"{group.index[i]}, low: {low}, close: {close} - SELL")
+
+        print(f'Num_of_trades: {count}')
+        print(f'Win: {self.win}')
+        print(f'Lose: {self.loss}')
+        print(f'Win_rate: {round((self.win / count) * 100, 0)}%')
+    
+    def trade(self, entry, stop_loss_price, target, index, group):
+
+        stop_loss = abs(entry - stop_loss_price)
+
+        for i in range(index + 1, len(group)):
+            high = group["high_spy"].iloc[i]
+            low = group["low_spy"].iloc[i]
+
+            if self.trend.lower() == "up":
+                if low <= stop_loss_price:
+                    self.loss += 1
+                    return False
+
+                elif high <= ((stop_loss * target) + entry):
+                    self.win += 1
+                    return True
+            
+            elif self.trend.lower() == "down":
+                if high >= stop_loss_price:
+                    self.loss += 1
+                    return False
+
+                elif low <= (entry - (stop_loss * target)):
+                    self.win += 1
+                    return True
 
 if __name__ == "__main__":
-    bt = Backtesting(10,5)
+    bt = Backtesting("up", 2)
     bt.get_data("SPY")
     # print(bt.show_data())
     # print(bt.data.dtypes)
